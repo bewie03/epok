@@ -15,6 +15,15 @@ load_dotenv()
 
 app = FastAPI(title="Epok Raffle API")
 
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://epok-eight.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 def add_cors_headers(response: Response):
     response.headers["Access-Control-Allow-Origin"] = "https://epok-eight.vercel.app"
     response.headers["Access-Control-Allow-Credentials"] = "true"
