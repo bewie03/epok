@@ -35,8 +35,8 @@ class BlockfrostService:
                         elif amount.unit == self.epok_policy_id:
                             epok_amount = amount.quantity
                     
-                    # Calculate number of tickets (5 ADA per ticket)
-                    if ada_amount >= 5:
+                    # Validate both ADA and EPOK requirements
+                    if ada_amount >= 5 and epok_amount >= 1000:
                         num_tickets = int(ada_amount // 5)
                         
                         # Create entry in database
@@ -59,6 +59,6 @@ class BlockfrostService:
                             "epok_amount": epok_amount
                         }
             
-            return {"valid": False, "error": "No valid outputs found"}
+            return {"valid": False, "error": "Transaction must include 5 ADA and 1000 EPOK tokens"}
         except Exception as e:
             return {"valid": False, "error": str(e)}

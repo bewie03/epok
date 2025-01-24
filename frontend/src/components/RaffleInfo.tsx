@@ -51,23 +51,12 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
         <Grid item xs={12}>
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" color="text.secondary" gutterBottom>
-              Current Prize Pool
+              Prize
             </Typography>
             <Stack direction="row" spacing={4} alignItems="center" justifyContent="center">
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  NFT Prize
-                </Typography>
                 <Typography variant="h3">
-                  1 EPOK
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  ADA Prize
-                </Typography>
-                <Typography variant="h3">
-                  {prizeData?.amount || 0} ADA
+                  1 EPOK NFT
                 </Typography>
               </Box>
             </Stack>

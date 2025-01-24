@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from . import models, blockfrost_service
 from .database import get_db, engine
 from . import webhook_handler
@@ -61,9 +62,15 @@ async def get_current_epoch():
 
 @api_router.get("/current-prize")
 async def get_current_prize(db: Session = Depends(get_db)):
+    current_epoch = get_or_create_current_epoch(db)
+    
+    # Get total ADA in current epoch
+    total_ada = db.query(func.sum(models.RaffleEntry.ada_amount))\
+        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
+        .scalar() or 0
+    
     return {
-        "prize_type": "ADA",
-        "prize_value": "ADA"
+        "amount": total_ada
     }
 
 @api_router.get("/participants")

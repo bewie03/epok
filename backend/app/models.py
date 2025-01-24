@@ -56,12 +56,3 @@ class RaffleEpoch(Base):
             self.winner_address = random.choice(tickets)
             return self.winner_address
         return None
-
-class TokenBurn(Base):
-    __tablename__ = "token_burns"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    epoch_id = Column(Integer, ForeignKey('raffle_epochs.id'))
-    burn_time = Column(DateTime, default=datetime.utcnow)
-    total_tokens_burned = Column(Float)
-    transaction_hash = Column(String, unique=True)

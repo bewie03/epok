@@ -96,7 +96,11 @@ async def handle_transaction_webhook(request: Request, db: Session = Depends(get
     
     try:
         tx_hash = payload["tx_hash"]
-        return await handle_transaction_webhook(tx_hash, db)
+        # Process the transaction using blockfrost service
+        blockfrost_service = BlockfrostService()
+        current_epoch = get_or_create_current_epoch(db)
+        result = await blockfrost_service.process_transaction(tx_hash, db, current_epoch)
+        return result
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -88,10 +88,6 @@ const theme = createTheme({
   },
 });
 
-interface PrizeData {
-  amount: number;
-}
-
 interface ParticipantsData {
   participants: {
     wallet_address: string;
@@ -160,7 +156,6 @@ function calculateEpochInfo(): EpochData {
 
 function App() {
   const [epochData, setEpochData] = useState<EpochData>(calculateEpochInfo());
-  const [prizeData, setPrizeData] = useState<PrizeData | null>(null);
   const [participants, setParticipants] = useState<ParticipantsData>({ 
     participants: [], 
     total_entries: 0 
@@ -169,12 +164,7 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prizeResponse, participantsResponse] = await Promise.all([
-          axios.get(`${API_URL}/api/current-prize`),
-          axios.get(`${API_URL}/api/participants`),
-        ]);
-
-        setPrizeData(prizeResponse.data);
+        const participantsResponse = await axios.get(`${API_URL}/api/participants`);
         setParticipants(participantsResponse.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -200,27 +190,26 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{
+      <Box sx={{ 
         minHeight: '100vh',
-        bgcolor: 'background.default'
+        backgroundColor: 'background.default',
+        pb: 8
       }}>
-        <AppBar position="sticky">
-          <Container maxWidth="lg">
-            <Toolbar sx={{ px: 0 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Epok Raffle
-              </Typography>
-            </Toolbar>
-          </Container>
+        <AppBar position="static" sx={{ mb: 4 }}>
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              EPOK Raffle
+            </Typography>
+          </Toolbar>
         </AppBar>
 
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Container maxWidth="lg">
           <Grid container spacing={4}>
-            <Grid item xs={12} md={8}>
-              <RaffleInfo epochData={epochData} prizeData={prizeData} />
+            <Grid item xs={12}>
+              <RaffleInfo 
+                epochData={epochData} prizeData={null}              />
             </Grid>
-            
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12}>
               <Paper sx={{ p: 3, height: '100%' }}>
                 <Typography variant="h6" gutterBottom>
                   Participants
