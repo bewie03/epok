@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://your-heroku-app.herokuapp.com/api/:path*"
+      "destination": "https://epok-raffle.herokuapp.com/api/:path*"
     }
   ]
 }
