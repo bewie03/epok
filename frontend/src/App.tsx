@@ -117,14 +117,28 @@ interface EpochData {
   };
 }
 
-const EPOCH_START = new Date('2024-01-20T08:44:00+11:00');
-const EPOCH_END = new Date('2024-01-25T08:44:00+11:00');
+const EPOCH_START = new Date('2025-01-20T08:44:00+11:00');
+const EPOCH_END = new Date('2025-01-25T08:44:00+11:00');
 const CURRENT_EPOCH = 535;
 
 function calculateEpochInfo(): EpochData {
   const now = new Date();
   const timeDiff = EPOCH_END.getTime() - now.getTime();
   const totalSeconds = Math.floor(timeDiff / 1000);
+  
+  // Handle case where we're past the end time
+  if (totalSeconds < 0) {
+    return {
+      current_epoch: CURRENT_EPOCH,
+      progress: 100,
+      time_remaining: {
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0
+      }
+    };
+  }
   
   const days = Math.floor(totalSeconds / (24 * 60 * 60));
   const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
