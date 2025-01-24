@@ -135,13 +135,7 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
             </Typography>
             <Box sx={{ mb: 3 }}>
               <Typography variant="body1" paragraph>
-                1. Send any amount of ADA to the raffle wallet address below
-              </Typography>
-              <Typography variant="body1" paragraph>
-                2. For every 50 ADA sent, you receive 1 EPOK token and 1 raffle ticket
-              </Typography>
-              <Typography variant="body1" paragraph>
-                3. Winners are drawn at the end of each epoch
+                Send EXACTLY 5 ADA and 1000 EPOK tokens to this address for a raffle ticket
               </Typography>
             </Box>
             <Typography variant="body1" color="text.secondary" gutterBottom>

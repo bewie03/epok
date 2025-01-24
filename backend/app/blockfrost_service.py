@@ -35,17 +35,15 @@ class BlockfrostService:
                         elif amount.unit == self.epok_policy_id:
                             epok_amount = amount.quantity
                     
-                    # Validate both ADA and EPOK requirements
-                    if ada_amount >= 5 and epok_amount >= 1000:
-                        num_tickets = int(ada_amount // 5)
-                        
+                    # Validate EXACT amounts required
+                    if ada_amount == 5 and epok_amount == 1000:
                         # Create entry in database
                         entry = models.RaffleEntry(
                             wallet_address=tx.inputs[0].address,  # Sender's address
                             transaction_hash=tx_hash,
                             ada_amount=ada_amount,
                             epok_amount=epok_amount,
-                            tickets=num_tickets,
+                            tickets=1,  # Always 1 ticket per valid transaction
                             epoch_id=current_epoch.id
                         )
                         
@@ -54,11 +52,11 @@ class BlockfrostService:
                         
                         return {
                             "valid": True,
-                            "tickets": num_tickets,
+                            "tickets": 1,
                             "ada_amount": ada_amount,
                             "epok_amount": epok_amount
                         }
             
-            return {"valid": False, "error": "Transaction must include 5 ADA and 1000 EPOK tokens"}
+            return {"valid": False, "error": "Transaction must include EXACTLY 5 ADA and 1000 EPOK tokens"}
         except Exception as e:
             return {"valid": False, "error": str(e)}
