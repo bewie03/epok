@@ -18,35 +18,73 @@ import { API_URL } from './config';
 const theme = createTheme({
   palette: {
     mode: 'dark',
-    primary: { main: '#2196f3' },
+    primary: { main: '#3B82F6' },
     background: {
-      default: '#0a1929',
-      paper: 'rgba(19, 47, 76, 0.4)',
+      default: '#0F172A',
+      paper: '#1E293B',
     },
+    text: {
+      primary: '#F8FAFC',
+      secondary: '#94A3B8'
+    }
   },
   typography: {
-    fontFamily: "'Inter', sans-serif",
-    h1: { fontSize: '2.5rem', fontWeight: 600 },
-    h2: { fontSize: '2rem', fontWeight: 500 },
-    h3: { fontSize: '1.5rem', fontWeight: 500 },
-    h6: { fontWeight: 500 },
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    h1: { fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.025em' },
+    h2: { fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.025em' },
+    h3: { fontSize: '1.5rem', fontWeight: 600, letterSpacing: '-0.025em' },
+    h6: { fontWeight: 500, letterSpacing: '-0.025em' },
+    body1: { fontSize: '1rem', lineHeight: 1.5 },
+    body2: { fontSize: '0.875rem', lineHeight: 1.5 }
+  },
+  shape: {
+    borderRadius: 12
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
-          backdropFilter: 'blur(20px)',
-          borderRadius: 12,
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundImage: 'none',
+          backgroundColor: '#1E293B',
+          borderRadius: 16,
+          border: '1px solid rgba(148, 163, 184, 0.1)',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          background: 'rgba(10, 25, 41, 0.7)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'transparent',
+          backgroundImage: 'none',
+          boxShadow: 'none',
+          borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+          backdropFilter: 'blur(8px)',
+        },
+      },
+    },
+    MuiLinearProgress: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderRadius: 8,
+        },
+        bar: {
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 8,
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
         },
       },
     },
@@ -58,42 +96,59 @@ interface PrizeData {
 }
 
 interface ParticipantsData {
-  participants: Array<{
+  participants: {
     wallet_address: string;
     entry_time: string;
     ada_amount: number;
     epok_amount: number;
     tickets: number;
-  }>;
+  }[];
   total_entries: number;
 }
 
-const EPOCH_LENGTH_DAYS = 5;
-const EPOCH_START = new Date('2024-01-25T00:00:00Z'); // Set this to a known epoch start
-const CURRENT_EPOCH = 535; // Current known epoch
+interface EpochData {
+  current_epoch: number;
+  progress: number;
+  time_remaining: {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  };
+}
 
-function calculateEpochInfo() {
+const EPOCH_LENGTH_DAYS = 5;
+const EPOCH_START = new Date('2024-01-25T00:00:00Z');
+const CURRENT_EPOCH = 535;
+
+function calculateEpochInfo(): EpochData {
   const now = new Date();
   const timeDiff = now.getTime() - EPOCH_START.getTime();
-  const daysSinceStart = timeDiff / (1000 * 60 * 60 * 24);
+  const totalSeconds = Math.floor(timeDiff / 1000);
   
-  // Calculate time until next epoch
-  const daysIntoCurrentEpoch = daysSinceStart % EPOCH_LENGTH_DAYS;
-  const daysRemaining = EPOCH_LENGTH_DAYS - daysIntoCurrentEpoch;
+  const secondsInEpoch = EPOCH_LENGTH_DAYS * 24 * 60 * 60;
+  const secondsIntoCurrentEpoch = totalSeconds % secondsInEpoch;
+  const secondsRemaining = secondsInEpoch - secondsIntoCurrentEpoch;
   
-  const hoursRemaining = Math.floor((daysRemaining % 1) * 24);
-  const minutesRemaining = Math.floor((hoursRemaining % 1) * 60);
-  const secondsRemaining = Math.floor((minutesRemaining % 1) * 60);
+  const days = Math.floor(secondsRemaining / (24 * 60 * 60));
+  const hours = Math.floor((secondsRemaining % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((secondsRemaining % (60 * 60)) / 60);
+  const seconds = secondsRemaining % 60;
 
   return {
     current_epoch: CURRENT_EPOCH,
-    progress: (daysIntoCurrentEpoch / EPOCH_LENGTH_DAYS) * 100,
-    time_remaining: `${Math.floor(daysRemaining)}d ${Math.floor(hoursRemaining)}h ${Math.floor(minutesRemaining)}m ${Math.floor(secondsRemaining)}s`
+    progress: (secondsIntoCurrentEpoch / secondsInEpoch) * 100,
+    time_remaining: {
+      days,
+      hours,
+      minutes,
+      seconds
+    }
   };
 }
 
 function App() {
-  const [epochData, setEpochData] = useState(calculateEpochInfo());
+  const [epochData, setEpochData] = useState<EpochData>(calculateEpochInfo());
   const [prizeData, setPrizeData] = useState<PrizeData | null>(null);
   const [participants, setParticipants] = useState<ParticipantsData>({ 
     participants: [], 
@@ -136,45 +191,41 @@ function App() {
       <CssBaseline />
       <Box sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a1929 0%, #1a3b5d 100%)',
-        backgroundAttachment: 'fixed',
+        background: 'radial-gradient(circle at top, #1E293B 0%, #0F172A 100%)',
       }}>
         <AppBar position="sticky">
-          <Toolbar>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Epok Raffle
-            </Typography>
-          </Toolbar>
+          <Container maxWidth="lg">
+            <Toolbar sx={{ px: 0 }}>
+              <Typography variant="h6" sx={{ 
+                fontWeight: 600,
+                background: 'linear-gradient(to right, #3B82F6, #60A5FA)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                Epok Raffle
+              </Typography>
+            </Toolbar>
+          </Container>
         </AppBar>
 
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             <Grid item xs={12} md={8}>
               <RaffleInfo epochData={epochData} prizeData={prizeData} />
             </Grid>
             
             <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, height: '100%' }}>
-                <Typography variant="h3" gutterBottom>
-                  Current Prize Pool
-                </Typography>
-                {prizeData && (
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h2" color="primary" sx={{ mb: 1 }}>
-                      {prizeData.amount} ADA
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
-                      Draw in: {epochData.time_remaining}
-                    </Typography>
-                  </Box>
-                )}
-              </Paper>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h3" gutterBottom>
-                  Current Participants
+              <Paper sx={{ 
+                p: 3, 
+                height: '100%',
+                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.6) 100%)',
+                backdropFilter: 'blur(8px)',
+              }}>
+                <Typography variant="h6" gutterBottom sx={{ 
+                  color: theme.palette.text.primary,
+                  mb: 3
+                }}>
+                  Participants
                 </Typography>
                 <ParticipantList participants={participants.participants} />
               </Paper>
