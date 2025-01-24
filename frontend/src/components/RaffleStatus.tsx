@@ -32,7 +32,7 @@ export const RaffleStatus: React.FC = () => {
   useEffect(() => {
     const fetchRaffleData = async () => {
       try {
-        const response = await fetch(`${API_URL}/entries`);
+        const response = await fetch(`${API_URL}/api/entries`);
         if (!response.ok) {
           throw new Error('Failed to fetch raffle data');
         }

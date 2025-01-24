@@ -15,13 +15,20 @@ load_dotenv()
 
 app = FastAPI(title="Epok Raffle API")
 
-# Add CORS middleware
+# Configure CORS
+origins = [
+    "https://epok-eight.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://epok-eight.vercel.app", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 blockfrost = blockfrost_service.BlockfrostService()
@@ -109,6 +116,26 @@ async def get_participants(db: Session = Depends(get_db)):
             for entry in entries
         ],
         "total_entries": sum(entry.tickets for entry in entries)
+    }
+
+@app.get("/api/entries")
+async def get_entries(db: Session = Depends(get_db)):
+    current_epoch = get_or_create_current_epoch(db)
+    
+    entries = db.query(models.RaffleEntry)\
+        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
+        .all()
+    
+    return {
+        "entries": [
+            {
+                "wallet_address": entry.wallet_address,
+                "tickets": entry.tickets,
+                "transaction_hash": entry.transaction_hash
+            }
+            for entry in entries
+        ],
+        "count": sum(entry.tickets for entry in entries)
     }
 
 @app.get("/api/latest-winner")
