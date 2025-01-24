@@ -6,6 +6,7 @@ import ParticipantList from './components/ParticipantList';
 import Winner from './components/Winner';
 import { RaffleStatus } from './components/RaffleStatus';
 import axios from 'axios';
+import { API_URL } from './config';
 
 const theme = createTheme({
   palette: {
@@ -18,7 +19,7 @@ const theme = createTheme({
   },
 });
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = API_URL;
 
 function App() {
   const [epochData, setEpochData] = useState<any>(null);

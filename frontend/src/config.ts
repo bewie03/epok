@@ -9,7 +9,9 @@ declare global {
 }
 
 // API URL for the backend
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+export const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://epok-raffle.herokuapp.com'
+  : 'http://localhost:8000';
 
 // Required EPOK amount for raffle entry
 export const REQUIRED_EPOK_AMOUNT = 1000;
