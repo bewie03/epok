@@ -8,6 +8,10 @@ from . import models, blockfrost_service
 from .database import get_db, engine
 from . import webhook_handler
 from blockfrost import BlockFrostApi
+import httpx
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -33,38 +37,27 @@ api = BlockFrostApi(
     project_id=os.environ.get('BLOCKFROST_PROJECT_ID')
 )
 
-def get_cardano_epoch_info():
-    """Get current Cardano epoch info from Blockfrost"""
+async def get_cardano_epoch_info():
     try:
-        latest_epoch = api.epoch_latest()
-        epoch_end = latest_epoch.end_time
-        return {
-            "epoch": latest_epoch.epoch,
-            "start_time": latest_epoch.start_time,
-            "end_time": epoch_end,
-            "progress": latest_epoch.progress
-        }
+        async with httpx.AsyncClient() as client:
+            response = await client.get('https://cardanocountdown.com/api/epoch')
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'current_epoch': data['epoch'],
+                    'progress': data['progress'],
+                    'time_remaining': data['timeLeft']
+                }
     except Exception as e:
-        print(f"Error getting epoch info: {e}")
-        return None
+        logger.error(f"Error fetching epoch info: {e}")
+    return None
 
 @api_router.get("/current-epoch")
-async def get_current_epoch(db: Session = Depends(get_db)):
-    """Get current epoch info synced with Cardano network"""
-    try:
-        current_epoch = get_or_create_current_epoch(db)
-        if not current_epoch:
-            raise HTTPException(status_code=500, detail="Could not fetch current epoch")
-        
-        return {
-            "epoch": current_epoch.id,
-            "start_time": current_epoch.start_time.isoformat(),
-            "end_time": current_epoch.end_time.isoformat(),
-            "progress": current_epoch.calculate_progress()
-        }
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+async def get_current_epoch():
+    epoch_info = await get_cardano_epoch_info()
+    if epoch_info:
+        return epoch_info
+    return {"error": "Failed to fetch epoch information"}
 
 @api_router.get("/current-prize")
 async def get_current_prize(db: Session = Depends(get_db)):

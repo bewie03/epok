@@ -1,65 +1,140 @@
-import React from 'react';
-import { Box, Typography, Paper, Card, CardMedia, CardContent } from '@mui/material';
-import Countdown from 'react-countdown';
+import React, { useState } from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  IconButton,
+  Snackbar,
+  Button,
+  Chip,
+  LinearProgress
+} from '@mui/material';
+import { ContentCopy } from '@mui/icons-material';
+import { RAFFLE_WALLET_ADDRESS } from '../config';
 
 interface RaffleInfoProps {
-  walletAddress: string;
-  epochEnd: string;
-  prizeInfo: {
-    name: string;
-    imageUrl: string;
-  };
+  epochData: any;
+  prizeData: any;
 }
 
-const RaffleInfo: React.FC<RaffleInfoProps> = ({ walletAddress, epochEnd, prizeInfo }) => {
+const RaffleInfo: React.FC<RaffleInfoProps> = ({ epochData, prizeData }) => {
+  const [showCopySuccess, setShowCopySuccess] = React.useState(false);
+
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(RAFFLE_WALLET_ADDRESS);
+      setShowCopySuccess(true);
+    } catch (err) {
+      console.error('Failed to copy address:', err);
+    }
+  };
+
   return (
-    <Paper elevation={3} sx={{ 
-      height: '100%', 
-      background: 'rgba(19, 47, 76, 0.4)', 
-      backdropFilter: 'blur(10px)',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
-      <Typography variant="h2" gutterBottom>
-        Prize
-      </Typography>
-      
-      <Card sx={{ 
-        flexGrow: 1, 
-        background: 'transparent',
-        boxShadow: 'none'
-      }}>
-        <CardMedia
-          component="img"
-          image={prizeInfo.imageUrl}
-          alt={prizeInfo.name}
-          sx={{ 
-            height: 300,
-            objectFit: 'contain',
-            borderRadius: '8px',
-            mb: 2
-          }}
-        />
-        <CardContent sx={{ p: 0 }}>
+    <Paper sx={{ p: 3 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
           <Typography variant="h3" gutterBottom>
-            {prizeInfo.name}
+            Current Raffle Status
           </Typography>
-          
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h6" color="primary" gutterBottom>
-              Time Until Draw
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Current Epoch: {epochData?.current_epoch}
             </Typography>
-            <Typography variant="h3">
-              <Countdown 
-                date={new Date(epochEnd)}
-                renderer={({ days, hours, minutes, seconds }) => (
-                  <span>{days}d {hours}h {minutes}m {seconds}s</span>
-                )}
-              />
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Epoch Progress
+              </Typography>
+              <Typography variant="body2" color="primary">
+                {epochData?.progress.toFixed(2) || '0'}%
+              </Typography>
+            </Box>
+            <LinearProgress 
+              variant="determinate" 
+              value={Number(epochData?.progress) || 0}
+              sx={{ 
+                height: 8, 
+                borderRadius: 4,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 4,
+                },
+              }} 
+            />
           </Box>
-        </CardContent>
-      </Card>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box sx={{ 
+            p: 2, 
+            bgcolor: 'background.default', 
+            borderRadius: 2,
+            border: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Raffle Wallet Address
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontFamily: 'monospace',
+                  flexGrow: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {RAFFLE_WALLET_ADDRESS}
+              </Typography>
+              <IconButton
+                onClick={handleCopyAddress}
+                size="small"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.05)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
+              >
+                <ContentCopy fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 2, 
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            mt: 2 
+          }}>
+            <Chip
+              label={`Time Remaining: ${epochData?.time_remaining || 'Loading...'}`}
+              color="primary"
+              sx={{ 
+                height: 'auto',
+                padding: '8px 12px',
+                '& .MuiChip-label': {
+                  fontSize: '1rem',
+                },
+              }}
+            />
+          </Box>
+        </Grid>
+      </Grid>
+
+      <Snackbar
+        open={showCopySuccess}
+        autoHideDuration={2000}
+        onClose={() => setShowCopySuccess(false)}
+        message="Address copied to clipboard"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </Paper>
   );
 };
