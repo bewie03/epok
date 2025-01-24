@@ -11,7 +11,7 @@ declare global {
 // API URL for the backend
 export const API_URL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:8000'
-  : window.location.origin;  // Use the same origin in production
+  : 'https://epok-raffle-backend.herokuapp.com';  // Heroku backend URL in production
 
 // Required EPOK amount for raffle entry
 export const REQUIRED_EPOK_AMOUNT = 1000;
