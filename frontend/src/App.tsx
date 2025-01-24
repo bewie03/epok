@@ -16,8 +16,6 @@ import {
 import { Circle as CircleIcon } from '@mui/icons-material';
 import RaffleInfo from './components/RaffleInfo';
 import ParticipantList from './components/ParticipantList';
-import Winner from './components/Winner';
-import { RaffleStatus } from './components/RaffleStatus';
 import axios from 'axios';
 import { API_URL, REQUIRED_EPOK_AMOUNT, RAFFLE_WALLET_ADDRESS } from './config';
 
@@ -64,7 +62,6 @@ function App() {
   const [epochData, setEpochData] = useState<any>(null);
   const [prizeData, setPrizeData] = useState<any>(null);
   const [participants, setParticipants] = useState<any>({ participants: [], total_entries: 0 });
-  const [winner, setWinner] = useState<any>(null);
 
   const calculateTimeRemaining = (endTime: string) => {
     const end = new Date(endTime);
@@ -84,17 +81,15 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [epochResponse, prizeResponse, participantsResponse, winnerResponse] = await Promise.all([
+        const [epochResponse, prizeResponse, participantsResponse] = await Promise.all([
           axios.get(`${API_BASE_URL}/api/current-epoch`),
           axios.get(`${API_BASE_URL}/api/current-prize`),
           axios.get(`${API_BASE_URL}/api/participants`),
-          axios.get(`${API_BASE_URL}/api/latest-winner`),
         ]);
 
         setEpochData(epochResponse.data);
         setPrizeData(prizeResponse.data);
         setParticipants(participantsResponse.data);
-        setWinner(winnerResponse.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
