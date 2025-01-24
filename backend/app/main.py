@@ -51,16 +51,20 @@ def get_cardano_epoch_info():
 @api_router.get("/current-epoch")
 async def get_current_epoch(db: Session = Depends(get_db)):
     """Get current epoch info synced with Cardano network"""
-    cardano_epoch = get_cardano_epoch_info()
-    if not cardano_epoch:
-        raise HTTPException(status_code=500, detail="Could not fetch Cardano epoch info")
-    
-    return {
-        "epoch": cardano_epoch["epoch"],
-        "start_time": cardano_epoch["start_time"],
-        "end_time": cardano_epoch["end_time"],
-        "progress": cardano_epoch["progress"]
-    }
+    try:
+        current_epoch = get_or_create_current_epoch(db)
+        if not current_epoch:
+            raise HTTPException(status_code=500, detail="Could not fetch current epoch")
+        
+        return {
+            "epoch": current_epoch.id,
+            "start_time": current_epoch.start_time.isoformat(),
+            "end_time": current_epoch.end_time.isoformat(),
+            "progress": current_epoch.calculate_progress()
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/current-prize")
 async def get_current_prize(db: Session = Depends(get_db)):
@@ -144,27 +148,33 @@ async def preflight_handler(rest_of_path: str):
 
 def get_or_create_current_epoch(db: Session):
     """Get current epoch or create new one if previous ended"""
-    current_time = datetime.utcnow()
-    
-    # Check for active epoch
-    current_epoch = db.query(models.RaffleEpoch)\
-        .filter(models.RaffleEpoch.end_time > current_time)\
-        .filter(models.RaffleEpoch.is_completed == False)\
-        .first()
-    
-    if not current_epoch:
-        # Create new epoch
-        start_time = current_time
-        end_time = start_time + timedelta(days=5)
+    try:
+        current_time = datetime.utcnow()
         
-        current_epoch = models.RaffleEpoch(
-            start_time=start_time,
-            end_time=end_time,
-            is_completed=False
-        )
-        db.add(current_epoch)
-        db.commit()
-    
-    return current_epoch
+        # Check for active epoch
+        current_epoch = db.query(models.RaffleEpoch)\
+            .filter(models.RaffleEpoch.end_time > current_time)\
+            .filter(models.RaffleEpoch.is_completed == False)\
+            .first()
+        
+        if not current_epoch:
+            # Create new epoch
+            start_time = current_time
+            end_time = start_time + timedelta(days=5)
+            
+            current_epoch = models.RaffleEpoch(
+                start_time=start_time,
+                end_time=end_time,
+                is_completed=False
+            )
+            db.add(current_epoch)
+            db.commit()
+            db.refresh(current_epoch)
+        
+        return current_epoch
+    except Exception as e:
+        db.rollback()
+        print(f"Error in get_or_create_current_epoch: {str(e)}")
+        raise
 
 blockfrost = blockfrost_service.BlockfrostService()
