@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import os
@@ -15,26 +15,100 @@ load_dotenv()
 
 app = FastAPI(title="Epok Raffle API")
 
-# Configure CORS
-origins = [
-    "https://epok-eight.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:8000",
-]
+def add_cors_headers(response: Response):
+    response.headers["Access-Control-Allow-Origin"] = "https://epok-eight.vercel.app"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-)
+@app.get("/")
+async def root(response: Response):
+    response = add_cors_headers(response)
+    return {"message": "Welcome to Epok Raffle API"}
 
-blockfrost = blockfrost_service.BlockfrostService()
+@app.get("/api/current-epoch")
+async def get_current_epoch(response: Response, db: Session = Depends(get_db)):
+    response = add_cors_headers(response)
+    current_epoch = get_or_create_current_epoch(db)
+    return {
+        "epoch_start": current_epoch.start_time.isoformat(),
+        "epoch_end": current_epoch.end_time.isoformat(),
+        "time_remaining": (current_epoch.end_time - datetime.utcnow()).total_seconds()
+    }
 
-# Include the webhook router
-app.include_router(webhook_handler.router)
+@app.get("/api/current-prize")
+async def get_current_prize(response: Response, db: Session = Depends(get_db)):
+    response = add_cors_headers(response)
+    current_epoch = get_or_create_current_epoch(db)
+    return {
+        "prize_type": "NFT",
+        "name": current_epoch.prize_nft_name,
+        "asset_id": current_epoch.prize_nft_asset_id
+    }
+
+@app.get("/api/participants")
+async def get_participants(response: Response, db: Session = Depends(get_db)):
+    response = add_cors_headers(response)
+    current_epoch = get_or_create_current_epoch(db)
+    
+    entries = db.query(models.RaffleEntry)\
+        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
+        .all()
+    
+    return {
+        "participants": [
+            {
+                "wallet_address": entry.wallet_address,
+                "entry_time": entry.entry_time.isoformat(),
+                "ada_amount": entry.ada_amount,
+                "epok_amount": entry.epok_amount,
+                "tickets": entry.tickets
+            }
+            for entry in entries
+        ],
+        "total_entries": sum(entry.tickets for entry in entries)
+    }
+
+@app.get("/api/entries")
+async def get_entries(response: Response, db: Session = Depends(get_db)):
+    response = add_cors_headers(response)
+    current_epoch = get_or_create_current_epoch(db)
+    
+    entries = db.query(models.RaffleEntry)\
+        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
+        .all()
+    
+    return {
+        "entries": [
+            {
+                "wallet_address": entry.wallet_address,
+                "tickets": entry.tickets,
+                "transaction_hash": entry.transaction_hash
+            }
+            for entry in entries
+        ],
+        "count": sum(entry.tickets for entry in entries)
+    }
+
+@app.get("/api/latest-winner")
+async def get_latest_winner(response: Response, db: Session = Depends(get_db)):
+    response = add_cors_headers(response)
+    latest_completed_epoch = db.query(models.RaffleEpoch)\
+        .filter(models.RaffleEpoch.is_completed == True)\
+        .order_by(models.RaffleEpoch.end_time.desc())\
+        .first()
+    
+    if not latest_completed_epoch or not latest_completed_epoch.winner_wallet_address:
+        return {"winner": None}
+    
+    return {
+        "winner": {
+            "wallet_address": latest_completed_epoch.winner_wallet_address,
+            "prize_name": latest_completed_epoch.prize_nft_name,
+            "prize_asset_id": latest_completed_epoch.prize_nft_asset_id
+        }
+    }
 
 def get_or_create_current_epoch(db: Session):
     """Get current epoch or create new one if previous ended"""
@@ -74,82 +148,7 @@ def get_or_create_current_epoch(db: Session):
     
     return current_epoch
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Epok Raffle API"}
+# Include the webhook router
+app.include_router(webhook_handler.router)
 
-@app.get("/api/current-epoch")
-async def get_current_epoch(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
-    return {
-        "epoch_start": current_epoch.start_time.isoformat(),
-        "epoch_end": current_epoch.end_time.isoformat(),
-        "time_remaining": (current_epoch.end_time - datetime.utcnow()).total_seconds()
-    }
-
-@app.get("/api/current-prize")
-async def get_current_prize(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
-    return {
-        "prize_type": "NFT",
-        "name": current_epoch.prize_nft_name,
-        "asset_id": current_epoch.prize_nft_asset_id
-    }
-
-@app.get("/api/participants")
-async def get_participants(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
-    
-    entries = db.query(models.RaffleEntry)\
-        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
-        .all()
-    
-    return {
-        "participants": [
-            {
-                "wallet_address": entry.wallet_address,
-                "entry_time": entry.entry_time.isoformat(),
-                "ada_amount": entry.ada_amount,
-                "epok_amount": entry.epok_amount,
-                "tickets": entry.tickets
-            }
-            for entry in entries
-        ],
-        "total_entries": sum(entry.tickets for entry in entries)
-    }
-
-@app.get("/api/entries")
-async def get_entries(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
-    
-    entries = db.query(models.RaffleEntry)\
-        .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
-        .all()
-    
-    return {
-        "entries": [
-            {
-                "wallet_address": entry.wallet_address,
-                "tickets": entry.tickets,
-                "transaction_hash": entry.transaction_hash
-            }
-            for entry in entries
-        ],
-        "count": sum(entry.tickets for entry in entries)
-    }
-
-@app.get("/api/latest-winner")
-async def get_latest_winner(db: Session = Depends(get_db)):
-    latest_completed_epoch = db.query(models.RaffleEpoch)\
-        .filter(models.RaffleEpoch.is_completed == True)\
-        .filter(models.RaffleEpoch.winner_address != None)\
-        .order_by(models.RaffleEpoch.end_time.desc())\
-        .first()
-    
-    if latest_completed_epoch:
-        return {
-            "winner_address": latest_completed_epoch.winner_address,
-            "prize_nft_name": latest_completed_epoch.prize_nft_name,
-            "epoch_end": latest_completed_epoch.end_time.isoformat()
-        }
-    return {"winner_address": None}
+blockfrost = blockfrost_service.BlockfrostService()
