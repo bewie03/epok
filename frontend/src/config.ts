@@ -10,5 +10,5 @@ declare global {
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const API_BASE_URL = isDevelopment 
-  ? 'http://localhost:8000' 
+  ? 'http://localhost:8000'  // Local development
   : process.env.REACT_APP_API_URL || 'https://your-heroku-app.herokuapp.com';

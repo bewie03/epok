@@ -15,6 +15,8 @@ RAFFLE_WALLET = os.getenv("RAFFLE_WALLET_ADDRESS")
 REQUIRED_ADA = 5
 REQUIRED_EPOK = float(os.getenv("REQUIRED_EPOK_AMOUNT", "1000"))
 EPOK_POLICY_ID = os.getenv("EPOK_POLICY_ID")
+EPOK_ASSET_NAME = os.getenv("EPOK_ASSET_NAME")  # This should be the hex-encoded asset name
+FULL_ASSET_ID = f"{EPOK_POLICY_ID}{EPOK_ASSET_NAME}"  # Combine policy ID and hex asset name
 blockfrost_api = BlockFrostApi(project_id=os.getenv("BLOCKFROST_PROJECT_ID"))
 
 @router.post("/webhook/transaction")
@@ -41,7 +43,7 @@ async def handle_transaction(request: Request, db: Session = Depends(get_db)):
                 for amount in output.amount:
                     if amount.unit == "lovelace":  # This is ADA
                         ada_amount = amount.quantity / 1_000_000  # Convert lovelace to ADA
-                    elif amount.unit == EPOK_POLICY_ID:  # This is our Epok token
+                    elif amount.unit == FULL_ASSET_ID:  # This is our specific Epok token
                         epok_amount = amount.quantity
                 
                 # Verify exactly 5 ADA and required Epok amount
