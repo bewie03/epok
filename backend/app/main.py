@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from . import models, blockfrost_service
 from .database import get_db, engine
 from . import webhook_handler
+from blockfrost import BlockFrostApi
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -27,15 +28,38 @@ app.add_middleware(
 # Create API router
 api_router = APIRouter(prefix="/api")
 
+# Initialize Blockfrost client
+api = BlockFrostApi(
+    project_id=os.environ.get('BLOCKFROST_PROJECT_ID')
+)
+
+def get_cardano_epoch_info():
+    """Get current Cardano epoch info from Blockfrost"""
+    try:
+        latest_epoch = api.epoch_latest()
+        epoch_end = latest_epoch.end_time
+        return {
+            "epoch": latest_epoch.epoch,
+            "start_time": latest_epoch.start_time,
+            "end_time": epoch_end,
+            "progress": latest_epoch.progress
+        }
+    except Exception as e:
+        print(f"Error getting epoch info: {e}")
+        return None
+
 @api_router.get("/current-epoch")
 async def get_current_epoch(db: Session = Depends(get_db)):
-    """Get current raffle epoch info"""
-    current = get_or_create_current_epoch(db)
+    """Get current epoch info synced with Cardano network"""
+    cardano_epoch = get_cardano_epoch_info()
+    if not cardano_epoch:
+        raise HTTPException(status_code=500, detail="Could not fetch Cardano epoch info")
+    
     return {
-        "id": current.id,
-        "start_time": current.start_time,
-        "end_time": current.end_time,
-        "is_completed": current.is_completed
+        "epoch": cardano_epoch["epoch"],
+        "start_time": cardano_epoch["start_time"],
+        "end_time": cardano_epoch["end_time"],
+        "progress": cardano_epoch["progress"]
     }
 
 @api_router.get("/current-prize")
