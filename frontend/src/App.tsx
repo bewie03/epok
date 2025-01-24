@@ -53,12 +53,6 @@ const theme = createTheme({
   },
 });
 
-interface EpochData {
-  current_epoch: number;
-  progress: number;
-  time_remaining: string;
-}
-
 interface PrizeData {
   amount: number;
 }
