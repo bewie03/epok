@@ -30,6 +30,18 @@ class RaffleEpoch(Base):
     winner_address = Column(String, nullable=True)
     entries = relationship("RaffleEntry", back_populates="epoch")
     
+    def calculate_progress(self):
+        """Calculate the progress percentage of the current epoch"""
+        now = datetime.utcnow()
+        if now < self.start_time:
+            return 0
+        if now > self.end_time:
+            return 100
+            
+        total_duration = (self.end_time - self.start_time).total_seconds()
+        elapsed_duration = (now - self.start_time).total_seconds()
+        return min(100, max(0, (elapsed_duration / total_duration) * 100))
+    
     def select_winner(self):
         """Randomly select a winner based on number of tickets"""
         if not self.entries:

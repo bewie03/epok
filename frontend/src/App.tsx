@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline, AppBar, Toolbar, Typography, Container } from '@mui/material';
+import { 
+  CssBaseline, 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Container, 
+  Grid, 
+  Paper, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText 
+} from '@mui/material';
+import { Circle as CircleIcon } from '@mui/icons-material';
 import RaffleInfo from './components/RaffleInfo';
 import ParticipantList from './components/ParticipantList';
 import Winner from './components/Winner';
@@ -10,11 +23,37 @@ import { API_URL, REQUIRED_EPOK_AMOUNT, RAFFLE_WALLET_ADDRESS } from './config';
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#1976d2',
+      main: '#2196f3',
     },
-    secondary: {
-      main: '#dc004e',
+    background: {
+      default: '#0a1929',
+      paper: '#132f4c',
+    },
+  },
+  typography: {
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 600,
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 500,
+    },
+    h3: {
+      fontSize: '1.5rem',
+      fontWeight: 500,
+    },
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          padding: '24px',
+          borderRadius: '12px',
+        },
+      },
     },
   },
 });
@@ -69,59 +108,101 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar position="static">
+      <AppBar position="static" sx={{ mb: 4, background: 'transparent', boxShadow: 'none' }}>
         <Toolbar>
-          <Typography variant="h6">
+          <Typography variant="h1" component="h1" sx={{ flexGrow: 1 }}>
             Epok Raffle
           </Typography>
         </Toolbar>
       </AppBar>
-      <Container sx={{ mt: 4 }}>
-        {winner?.winner_address && (
-          <Winner
-            winnerAddress={winner.winner_address}
-            prizeNftName={winner.prize_nft_name}
-            epochEnd={winner.epoch_end}
-          />
-        )}
-        <div className="current-raffle">
-          <h2>Current Raffle</h2>
-          <div className="epoch-info">
-            <p>Current Epoch: {epochData?.epoch}</p>
-            <p>Progress: {epochData?.progress}%</p>
-            <p>Time Remaining: {calculateTimeRemaining(epochData?.end_time)}</p>
-          </div>
-        </div>
-        {epochData && prizeData && (
-          <RaffleInfo
-            walletAddress="addr1..." // Replace with your actual wallet address
-            epochEnd={String(epochData.epoch_end)}
-            prizeInfo={{
-              name: String(prizeData.name),
-              imageUrl: String(prizeData.image_url),
-            }}
-          />
-        )}
-        <div className="raffle-instructions">
-          <h3>How to Enter:</h3>
-          <div className="wallet-info">
-            <p>Send at least {REQUIRED_EPOK_AMOUNT} EPOK tokens to:</p>
-            <code className="wallet-address">{RAFFLE_WALLET_ADDRESS}</code>
-          </div>
-          <div className="requirements">
-            <h4>Requirements:</h4>
-            <ul>
-              <li>Minimum {REQUIRED_EPOK_AMOUNT} EPOK tokens</li>
-              <li>Must send to the exact wallet address above</li>
-              <li>Entry is automatic once transaction is confirmed</li>
-            </ul>
-          </div>
-        </div>
-        <ParticipantList 
-          participants={participants.participants} 
-          totalTickets={participants.total_entries}
-        />
-        <RaffleStatus />
+      <Container maxWidth="lg">
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={8}>
+            <Paper elevation={3} sx={{ mb: 4, background: 'rgba(19, 47, 76, 0.4)', backdropFilter: 'blur(10px)' }}>
+              <Typography variant="h2" gutterBottom>
+                Current Raffle
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="h6" color="primary">
+                    Progress
+                  </Typography>
+                  <Typography variant="h3">
+                    {epochData?.progress || 0}%
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="h6" color="primary">
+                    Time Remaining
+                  </Typography>
+                  <Typography variant="h3">
+                    {epochData ? calculateTimeRemaining(epochData.end_time) : 'Loading...'}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            <Paper elevation={3} sx={{ mb: 4, background: 'rgba(19, 47, 76, 0.4)', backdropFilter: 'blur(10px)' }}>
+              <Typography variant="h2" gutterBottom>
+                How to Enter
+              </Typography>
+              <Typography variant="h6" color="primary" gutterBottom>
+                Requirements
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon>
+                    <CircleIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={`Send at least ${REQUIRED_EPOK_AMOUNT} EPOK tokens`}
+                    secondary="Must be sent in a single transaction"
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <CircleIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Send to the exact wallet address below"
+                    secondary={RAFFLE_WALLET_ADDRESS}
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <CircleIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Entry is automatic"
+                    secondary="Your entry will be confirmed once the transaction is verified"
+                  />
+                </ListItem>
+              </List>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            {epochData && prizeData && (
+              <RaffleInfo
+                walletAddress={RAFFLE_WALLET_ADDRESS}
+                epochEnd={String(epochData.epoch_end)}
+                prizeInfo={{
+                  name: String(prizeData.name),
+                  imageUrl: String(prizeData.image_url),
+                }}
+              />
+            )}
+          </Grid>
+
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ background: 'rgba(19, 47, 76, 0.4)', backdropFilter: 'blur(10px)' }}>
+              <Typography variant="h2" gutterBottom>
+                Current Participants
+              </Typography>
+              <ParticipantList participants={participants} />
+            </Paper>
+          </Grid>
+        </Grid>
       </Container>
     </ThemeProvider>
   );
