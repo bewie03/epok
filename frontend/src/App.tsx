@@ -20,45 +20,42 @@ const theme = createTheme({
     mode: 'dark',
     primary: { main: '#3B82F6' },
     background: {
-      default: '#0F172A',
-      paper: '#1E293B',
+      default: '#111827',
+      paper: '#1F2937'
     },
     text: {
-      primary: '#F8FAFC',
-      secondary: '#94A3B8'
+      primary: '#F9FAFB',
+      secondary: '#9CA3AF'
     }
   },
   typography: {
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    h1: { fontSize: '2.5rem', fontWeight: 600, letterSpacing: '-0.025em' },
-    h2: { fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.025em' },
-    h3: { fontSize: '1.5rem', fontWeight: 600, letterSpacing: '-0.025em' },
-    h6: { fontWeight: 500, letterSpacing: '-0.025em' },
+    h1: { fontSize: '2.5rem', fontWeight: 600 },
+    h2: { fontSize: '2rem', fontWeight: 600 },
+    h3: { fontSize: '1.5rem', fontWeight: 600 },
+    h6: { fontWeight: 500 },
     body1: { fontSize: '1rem', lineHeight: 1.5 },
     body2: { fontSize: '0.875rem', lineHeight: 1.5 }
   },
   shape: {
-    borderRadius: 12
+    borderRadius: 8
   },
   components: {
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundImage: 'none',
-          backgroundColor: '#1E293B',
-          borderRadius: 16,
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          backgroundColor: '#1F2937',
+          borderRadius: 12,
+          border: '1px solid rgba(156, 163, 175, 0.1)',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'transparent',
-          backgroundImage: 'none',
+          backgroundColor: '#111827',
           boxShadow: 'none',
-          borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-          backdropFilter: 'blur(8px)',
+          borderBottom: '1px solid rgba(156, 163, 175, 0.1)',
         },
       },
     },
@@ -66,10 +63,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderRadius: 8,
+          borderRadius: 4,
         },
         bar: {
-          borderRadius: 8,
+          borderRadius: 4,
         },
       },
     },
@@ -77,14 +74,14 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderRadius: 8,
+          borderRadius: 6,
         },
       },
     },
     MuiIconButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 6,
         },
       },
     },
@@ -205,17 +202,12 @@ function App() {
       <CssBaseline />
       <Box sx={{
         minHeight: '100vh',
-        background: 'radial-gradient(circle at top, #1E293B 0%, #0F172A 100%)',
+        bgcolor: 'background.default'
       }}>
         <AppBar position="sticky">
           <Container maxWidth="lg">
             <Toolbar sx={{ px: 0 }}>
-              <Typography variant="h6" sx={{ 
-                fontWeight: 600,
-                background: 'linear-gradient(to right, #3B82F6, #60A5FA)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Epok Raffle
               </Typography>
             </Toolbar>
@@ -229,16 +221,8 @@ function App() {
             </Grid>
             
             <Grid item xs={12} md={4}>
-              <Paper sx={{ 
-                p: 3, 
-                height: '100%',
-                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.6) 100%)',
-                backdropFilter: 'blur(8px)',
-              }}>
-                <Typography variant="h6" gutterBottom sx={{ 
-                  color: theme.palette.text.primary,
-                  mb: 3
-                }}>
+              <Paper sx={{ p: 3, height: '100%' }}>
+                <Typography variant="h6" gutterBottom>
                   Participants
                 </Typography>
                 <ParticipantList participants={participants.participants} />

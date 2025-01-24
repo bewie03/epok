@@ -7,7 +7,8 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  useTheme
+  useTheme,
+  Stack
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { RAFFLE_WALLET_ADDRESS } from '../config';
@@ -50,21 +51,29 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
     <Paper sx={{ p: 4 }}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          {prizeData && (
-            <Box sx={{ mb: 4, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Current Prize Pool
-              </Typography>
-              <Typography variant="h1" sx={{
-                background: 'linear-gradient(to right, #3B82F6, #60A5FA)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 1
-              }}>
-                {prizeData.amount} ADA
-              </Typography>
-            </Box>
-          )}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              Current Prize Pool
+            </Typography>
+            <Stack direction="row" spacing={4} alignItems="center" justifyContent="center">
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  NFT Prize
+                </Typography>
+                <Typography variant="h3">
+                  1 EPOK
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  ADA Prize
+                </Typography>
+                <Typography variant="h3">
+                  {prizeData?.amount || 0} ADA
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
         </Grid>
 
         <Grid item xs={12}>
@@ -72,14 +81,14 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
             <Typography variant="h6" color="text.secondary" gutterBottom sx={{ textAlign: 'center' }}>
               Time Until Next Draw
             </Typography>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              gap: { xs: 2, sm: 4 },
-              flexWrap: 'wrap'
-            }}>
+            <Stack 
+              direction="row" 
+              spacing={{ xs: 2, sm: 4 }} 
+              justifyContent="center"
+              sx={{ mb: 3 }}
+            >
               <Box sx={{ textAlign: 'center', minWidth: '80px' }}>
-                <Typography variant="h2" color="primary">
+                <Typography variant="h2">
                   {epochData.time_remaining.days}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -87,7 +96,7 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: '80px' }}>
-                <Typography variant="h2" color="primary">
+                <Typography variant="h2">
                   {epochData.time_remaining.hours}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -95,7 +104,7 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: '80px' }}>
-                <Typography variant="h2" color="primary">
+                <Typography variant="h2">
                   {epochData.time_remaining.minutes}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -103,14 +112,14 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: '80px' }}>
-                <Typography variant="h2" color="primary">
+                <Typography variant="h2">
                   {epochData.time_remaining.seconds}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Seconds
                 </Typography>
               </Box>
-            </Box>
+            </Stack>
           </Box>
         </Grid>
 
@@ -134,6 +143,20 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
 
         <Grid item xs={12}>
           <Box>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              How to Enter
+            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body1" paragraph>
+                1. Send any amount of ADA to the raffle wallet address below
+              </Typography>
+              <Typography variant="body1" paragraph>
+                2. For every 50 ADA sent, you receive 1 EPOK token and 1 raffle ticket
+              </Typography>
+              <Typography variant="body1" paragraph>
+                3. Winners are drawn at the end of each epoch
+              </Typography>
+            </Box>
             <Typography variant="body1" color="text.secondary" gutterBottom>
               Raffle Wallet Address
             </Typography>
@@ -143,14 +166,14 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
               gap: 2,
               bgcolor: 'rgba(59, 130, 246, 0.1)',
               p: 2,
-              borderRadius: 2
+              borderRadius: 1
             }}>
               <Typography 
                 variant="body2"
                 sx={{ 
                   fontFamily: 'monospace',
                   flexGrow: 1,
-                  color: theme.palette.primary.main
+                  color: 'text.primary'
                 }}
               >
                 {shortenAddress(RAFFLE_WALLET_ADDRESS)}
@@ -166,7 +189,7 @@ export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
                   sx={{ 
                     color: 'primary.main',
                     '&:hover': {
-                      backgroundColor: 'rgba(59, 130, 246, 0.15)'
+                      bgcolor: 'rgba(59, 130, 246, 0.15)'
                     }
                   }}
                 >
