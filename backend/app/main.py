@@ -29,19 +29,20 @@ api_router = APIRouter(prefix="/api")
 
 @api_router.get("/current-epoch")
 async def get_current_epoch(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
+    """Get current raffle epoch info"""
+    current = get_or_create_current_epoch(db)
     return {
-        "epoch_start": current_epoch.start_time.isoformat(),
-        "epoch_end": current_epoch.end_time.isoformat() if current_epoch.end_time else None,
-        "is_completed": current_epoch.is_completed
+        "id": current.id,
+        "start_time": current.start_time,
+        "end_time": current.end_time,
+        "is_completed": current.is_completed
     }
 
 @api_router.get("/current-prize")
 async def get_current_prize(db: Session = Depends(get_db)):
-    current_epoch = get_or_create_current_epoch(db)
     return {
-        "prize_type": "NFT",
-        "prize_value": "Unique Digital Collectible"
+        "prize_type": "ADA",
+        "prize_value": "ADA"
     }
 
 @api_router.get("/participants")
@@ -60,7 +61,6 @@ async def get_participants(db: Session = Depends(get_db)):
             "wallet_address": entry.wallet_address,
             "tickets": entry.tickets,
             "ada_amount": entry.ada_amount,
-            "epok_amount": entry.epok_amount,
             "transaction_hash": entry.transaction_hash,
             "created_at": entry.created_at.isoformat()
         })
@@ -93,17 +93,18 @@ async def get_entries(db: Session = Depends(get_db)):
 
 @api_router.get("/latest-winner")
 async def get_latest_winner(db: Session = Depends(get_db)):
-    latest_completed_epoch = db.query(models.RaffleEpoch)\
+    """Get the most recent raffle winner"""
+    latest_completed = db.query(models.RaffleEpoch)\
         .filter(models.RaffleEpoch.is_completed == True)\
         .order_by(models.RaffleEpoch.end_time.desc())\
         .first()
     
-    if latest_completed_epoch and latest_completed_epoch.winner_address:
+    if latest_completed and latest_completed.winner_address:
         return {
-            "winner_address": latest_completed_epoch.winner_address,
-            "epoch_end": latest_completed_epoch.end_time.isoformat()
+            "winner_address": latest_completed.winner_address,
+            "end_time": latest_completed.end_time
         }
-    return None
+    return {"winner_address": None, "end_time": None}
 
 # Include the routers
 app.include_router(api_router)
