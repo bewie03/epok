@@ -15,10 +15,10 @@ load_dotenv()
 
 app = FastAPI(title="Epok Raffle API")
 
-# Configure CORS
+# Configure CORS - Allow the Vercel frontend to access our API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins temporarily
+    allow_origins=["https://epok-eight.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

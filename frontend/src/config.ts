@@ -8,10 +8,8 @@ declare global {
   }
 }
 
-// API URL for the backend
-export const API_URL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:8000'
-  : 'https://epok-a1328910c48c.herokuapp.com';  // Heroku backend URL
+// API URL for the backend - using relative path since we're proxying through Vercel
+export const API_URL = '';  // Empty string means use same domain
 
 // Required EPOK amount for raffle entry
 export const REQUIRED_EPOK_AMOUNT = 1000;
