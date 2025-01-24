@@ -194,7 +194,7 @@ function App() {
               <Typography variant="h2" gutterBottom>
                 Current Participants
               </Typography>
-              <ParticipantList participants={participants} />
+              <ParticipantList participants={participants.participants} />
             </Paper>
           </Grid>
         </Grid>
