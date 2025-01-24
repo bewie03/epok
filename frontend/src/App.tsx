@@ -117,27 +117,27 @@ interface EpochData {
   };
 }
 
-const EPOCH_LENGTH_DAYS = 5;
-const EPOCH_START = new Date('2024-01-25T00:00:00Z');
+const EPOCH_START = new Date('2024-01-20T08:44:00+11:00');
+const EPOCH_END = new Date('2024-01-25T08:44:00+11:00');
 const CURRENT_EPOCH = 535;
 
 function calculateEpochInfo(): EpochData {
   const now = new Date();
-  const timeDiff = now.getTime() - EPOCH_START.getTime();
+  const timeDiff = EPOCH_END.getTime() - now.getTime();
   const totalSeconds = Math.floor(timeDiff / 1000);
   
-  const secondsInEpoch = EPOCH_LENGTH_DAYS * 24 * 60 * 60;
-  const secondsIntoCurrentEpoch = totalSeconds % secondsInEpoch;
-  const secondsRemaining = secondsInEpoch - secondsIntoCurrentEpoch;
-  
-  const days = Math.floor(secondsRemaining / (24 * 60 * 60));
-  const hours = Math.floor((secondsRemaining % (24 * 60 * 60)) / (60 * 60));
-  const minutes = Math.floor((secondsRemaining % (60 * 60)) / 60);
-  const seconds = secondsRemaining % 60;
+  const days = Math.floor(totalSeconds / (24 * 60 * 60));
+  const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
+
+  const epochLength = EPOCH_END.getTime() - EPOCH_START.getTime();
+  const timeElapsed = now.getTime() - EPOCH_START.getTime();
+  const progress = (timeElapsed / epochLength) * 100;
 
   return {
     current_epoch: CURRENT_EPOCH,
-    progress: (secondsIntoCurrentEpoch / secondsInEpoch) * 100,
+    progress: Math.min(Math.max(progress, 0), 100), // Clamp between 0-100
     time_remaining: {
       days,
       hours,
