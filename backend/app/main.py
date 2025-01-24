@@ -16,19 +16,12 @@ load_dotenv()
 app = FastAPI(title="Epok Raffle API")
 
 # Configure CORS
-origins = [
-    "https://epok-eight.vercel.app",
-    "http://localhost:3000",  # For local development
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins temporarily
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=3600,
 )
 
 # Create API router
@@ -142,23 +135,10 @@ def get_or_create_current_epoch(db: Session):
         current_epoch = models.RaffleEpoch(
             start_time=start_time,
             end_time=end_time,
-            prize_nft_name="Current NFT Prize",  # You'll update this manually
-            prize_nft_asset_id="asset1..."  # You'll update this manually
+            is_completed=False
         )
         db.add(current_epoch)
         db.commit()
-        
-        # Check if there's a completed epoch that needs winner selection
-        completed_epoch = db.query(models.RaffleEpoch)\
-            .filter(models.RaffleEpoch.end_time <= current_time)\
-            .filter(models.RaffleEpoch.is_completed == False)\
-            .first()
-        
-        if completed_epoch:
-            # Select winner for completed epoch
-            winner = completed_epoch.select_winner()
-            completed_epoch.is_completed = True
-            db.commit()
     
     return current_epoch
 

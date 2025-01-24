@@ -28,6 +28,8 @@ class RaffleEpoch(Base):
     end_time = Column(DateTime)
     is_completed = Column(Boolean, default=False)
     winner_address = Column(String, nullable=True)
+    prize_nft_name = Column(String, nullable=True)
+    prize_nft_asset_id = Column(String, nullable=True)
     entries = relationship("RaffleEntry", back_populates="epoch")
     
     def select_winner(self):
