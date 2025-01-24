@@ -4,6 +4,7 @@ import { CssBaseline, AppBar, Toolbar, Typography, Container } from '@mui/materi
 import RaffleInfo from './components/RaffleInfo';
 import ParticipantList from './components/ParticipantList';
 import Winner from './components/Winner';
+import { RaffleStatus } from './components/RaffleStatus';
 import axios from 'axios';
 
 const theme = createTheme({
@@ -81,6 +82,7 @@ function App() {
           participants={participants.participants} 
           totalTickets={participants.total_entries}
         />
+        <RaffleStatus />
       </Container>
     </ThemeProvider>
   );

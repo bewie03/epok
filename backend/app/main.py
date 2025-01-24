@@ -15,7 +15,7 @@ load_dotenv()
 
 app = FastAPI(title="Epok Raffle API")
 
-# Configure CORS
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, replace with your frontend URL
@@ -26,7 +26,7 @@ app.add_middleware(
 
 blockfrost = blockfrost_service.BlockfrostService()
 
-# Include webhook router
+# Include the webhook router
 app.include_router(webhook_handler.router)
 
 def get_or_create_current_epoch(db: Session):

@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 import random
 
@@ -12,25 +13,21 @@ class RaffleEntry(Base):
     id = Column(Integer, primary_key=True, index=True)
     wallet_address = Column(String, index=True)
     transaction_hash = Column(String, unique=True, index=True)
-    ada_amount = Column(Float)  # Will be multiples of 5
+    ada_amount = Column(Float)
     epok_amount = Column(Float)
-    entry_time = Column(DateTime, default=datetime.utcnow)
+    tickets = Column(Integer, default=1)
+    created_at = Column(DateTime, default=func.now())
     epoch_id = Column(Integer, ForeignKey('raffle_epochs.id'))
-    tickets = Column(Integer)  # Number of tickets for this entry
-    
     epoch = relationship("RaffleEpoch", back_populates="entries")
 
 class RaffleEpoch(Base):
     __tablename__ = "raffle_epochs"
     
     id = Column(Integer, primary_key=True, index=True)
-    start_time = Column(DateTime, default=datetime.utcnow)
+    start_time = Column(DateTime, default=func.now())
     end_time = Column(DateTime)
-    winner_address = Column(String, nullable=True)
-    prize_nft_name = Column(String)
-    prize_nft_asset_id = Column(String)
     is_completed = Column(Boolean, default=False)
-    
+    winner_address = Column(String, nullable=True)
     entries = relationship("RaffleEntry", back_populates="epoch")
     
     def select_winner(self):
