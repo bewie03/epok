@@ -9,7 +9,9 @@ declare global {
 }
 
 // API URL for the backend
-export const API_URL = '';  // Empty string for relative paths, Vercel will handle the proxy
+export const API_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:8000'
+  : '';  // Empty string for production, using Vercel rewrites
 
 // Required EPOK amount for raffle entry
 export const REQUIRED_EPOK_AMOUNT = 1000;
