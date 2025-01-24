@@ -15,6 +15,7 @@ class BlockfrostService:
             base_url=ApiUrls.mainnet.value
         )
         self.raffle_address = os.getenv("RAFFLE_WALLET_ADDRESS")
+        self.epok_policy_id = os.getenv("EPOK_POLICY_ID")
 
     async def process_transaction(self, tx_hash: str, db: Session, current_epoch: models.RaffleEpoch):
         """Process a transaction and add entries to the raffle"""
@@ -31,8 +32,7 @@ class BlockfrostService:
                     for amount in output.amount:
                         if amount.unit == "lovelace":
                             ada_amount = amount.quantity / 1_000_000  # Convert lovelace to ADA
-                        # Replace with your Epok token policy ID
-                        elif amount.unit == "YOUR_EPOK_POLICY_ID":
+                        elif amount.unit == self.epok_policy_id:
                             epok_amount = amount.quantity
                     
                     # Calculate number of tickets (5 ADA per ticket)
