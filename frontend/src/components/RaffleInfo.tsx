@@ -7,7 +7,6 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  useTheme,
   Stack
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
@@ -35,7 +34,6 @@ function shortenAddress(address: string): string {
 
 export default function RaffleInfo({ epochData, prizeData }: RaffleInfoProps) {
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
-  const theme = useTheme();
 
   const handleCopy = async () => {
     try {
