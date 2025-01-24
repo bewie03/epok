@@ -9,11 +9,6 @@ import random
 
 load_dotenv()
 
-app = FastAPI()
-
-# In-memory storage for raffle entries
-# raffle_entries: Set[str] = set()
-
 router = APIRouter()
 
 @router.post("/webhook")
@@ -160,4 +155,5 @@ async def create_epoch(end_time: datetime, db: Session = Depends(get_db)):
         "end_time": end_time
     }
 
+app = FastAPI()
 app.include_router(router)

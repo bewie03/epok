@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Response
+from fastapi import FastAPI, HTTPException, Depends, Response, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import os
@@ -16,37 +16,42 @@ load_dotenv()
 app = FastAPI(title="Epok Raffle API")
 
 # Configure CORS
+origins = [
+    "https://epok-eight.vercel.app",
+    "http://localhost:3000",  # For local development
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://epok-eight.vercel.app"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Epok Raffle API"}
+# Create API router
+api_router = APIRouter(prefix="/api")
 
-@app.get("/api/current-epoch")
+@api_router.get("/current-epoch")
 async def get_current_epoch(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     return {
         "epoch_start": current_epoch.start_time.isoformat(),
-        "epoch_end": current_epoch.end_time.isoformat(),
-        "time_remaining": (current_epoch.end_time - datetime.utcnow()).total_seconds()
+        "epoch_end": current_epoch.end_time.isoformat() if current_epoch.end_time else None,
+        "is_completed": current_epoch.is_completed
     }
 
-@app.get("/api/current-prize")
+@api_router.get("/current-prize")
 async def get_current_prize(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     return {
         "prize_type": "NFT",
-        "name": current_epoch.prize_nft_name,
-        "asset_id": current_epoch.prize_nft_asset_id
+        "prize_value": "Unique Digital Collectible"
     }
 
-@app.get("/api/participants")
+@api_router.get("/participants")
 async def get_participants(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     
@@ -54,21 +59,25 @@ async def get_participants(db: Session = Depends(get_db)):
         .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
         .all()
     
+    total_entries = sum(entry.tickets for entry in entries)
+    
+    participants_data = []
+    for entry in entries:
+        participants_data.append({
+            "wallet_address": entry.wallet_address,
+            "tickets": entry.tickets,
+            "ada_amount": entry.ada_amount,
+            "epok_amount": entry.epok_amount,
+            "transaction_hash": entry.transaction_hash,
+            "created_at": entry.created_at.isoformat()
+        })
+    
     return {
-        "participants": [
-            {
-                "wallet_address": entry.wallet_address,
-                "entry_time": entry.entry_time.isoformat(),
-                "ada_amount": entry.ada_amount,
-                "epok_amount": entry.epok_amount,
-                "tickets": entry.tickets
-            }
-            for entry in entries
-        ],
-        "total_entries": sum(entry.tickets for entry in entries)
+        "participants": participants_data,
+        "total_entries": total_entries
     }
 
-@app.get("/api/entries")
+@api_router.get("/entries")
 async def get_entries(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     
@@ -76,35 +85,44 @@ async def get_entries(db: Session = Depends(get_db)):
         .filter(models.RaffleEntry.epoch_id == current_epoch.id)\
         .all()
     
+    entries_data = []
+    for entry in entries:
+        entries_data.append({
+            "wallet_address": entry.wallet_address,
+            "tickets": entry.tickets,
+            "transaction_hash": entry.transaction_hash,
+            "created_at": entry.created_at.isoformat()
+        })
+    
     return {
-        "entries": [
-            {
-                "wallet_address": entry.wallet_address,
-                "tickets": entry.tickets,
-                "transaction_hash": entry.transaction_hash
-            }
-            for entry in entries
-        ],
-        "count": sum(entry.tickets for entry in entries)
+        "entries": entries_data
     }
 
-@app.get("/api/latest-winner")
+@api_router.get("/latest-winner")
 async def get_latest_winner(db: Session = Depends(get_db)):
     latest_completed_epoch = db.query(models.RaffleEpoch)\
         .filter(models.RaffleEpoch.is_completed == True)\
         .order_by(models.RaffleEpoch.end_time.desc())\
         .first()
     
-    if not latest_completed_epoch or not latest_completed_epoch.winner_wallet_address:
-        return {"winner": None}
-    
-    return {
-        "winner": {
-            "wallet_address": latest_completed_epoch.winner_wallet_address,
-            "prize_name": latest_completed_epoch.prize_nft_name,
-            "prize_asset_id": latest_completed_epoch.prize_nft_asset_id
+    if latest_completed_epoch and latest_completed_epoch.winner_address:
+        return {
+            "winner_address": latest_completed_epoch.winner_address,
+            "epoch_end": latest_completed_epoch.end_time.isoformat()
         }
-    }
+    return None
+
+# Include the routers
+app.include_router(api_router)
+app.include_router(webhook_handler.router)
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Epok Raffle API"}
+
+@app.options("/{rest_of_path:path}")
+async def preflight_handler(rest_of_path: str):
+    return {"detail": "OK"}
 
 def get_or_create_current_epoch(db: Session):
     """Get current epoch or create new one if previous ended"""
@@ -143,8 +161,5 @@ def get_or_create_current_epoch(db: Session):
             db.commit()
     
     return current_epoch
-
-# Include the webhook router
-app.include_router(webhook_handler.router)
 
 blockfrost = blockfrost_service.BlockfrostService()
