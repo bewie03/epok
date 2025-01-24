@@ -1,16 +1,11 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
+import React from 'react';
+import { 
+  Box, 
+  Typography, 
+  LinearProgress,
   Grid,
-  IconButton,
-  Snackbar,
-  Button,
-  Chip,
-  LinearProgress
+  Paper
 } from '@mui/material';
-import { ContentCopy } from '@mui/icons-material';
 import { RAFFLE_WALLET_ADDRESS } from '../config';
 
 interface RaffleInfoProps {
@@ -89,18 +84,6 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({ epochData, prizeData }) => {
               >
                 {RAFFLE_WALLET_ADDRESS}
               </Typography>
-              <IconButton
-                onClick={handleCopyAddress}
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.05)',
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                }}
-              >
-                <ContentCopy fontSize="small" />
-              </IconButton>
             </Box>
           </Box>
         </Grid>
@@ -113,28 +96,44 @@ const RaffleInfo: React.FC<RaffleInfoProps> = ({ epochData, prizeData }) => {
             justifyContent: 'center',
             mt: 2 
           }}>
-            <Chip
-              label={`Time Remaining: ${epochData?.time_remaining || 'Loading...'}`}
-              color="primary"
+            <Typography 
+              variant="body2" 
               sx={{ 
-                height: 'auto',
                 padding: '8px 12px',
+                height: 'auto',
+                borderRadius: 4,
+                border: '1px solid rgba(255, 255, 255, 0.1)',
                 '& .MuiChip-label': {
                   fontSize: '1rem',
                 },
               }}
-            />
+            >
+              Time Remaining: {epochData?.time_remaining || 'Loading...'}
+            </Typography>
           </Box>
         </Grid>
       </Grid>
 
-      <Snackbar
-        open={showCopySuccess}
-        autoHideDuration={2000}
-        onClose={() => setShowCopySuccess(false)}
-        message="Address copied to clipboard"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center',
+        mt: 2 
+      }}>
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            padding: '8px 12px',
+            height: 'auto',
+            borderRadius: 4,
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            '& .MuiChip-label': {
+              fontSize: '1rem',
+            },
+          }}
+        >
+          Address copied to clipboard
+        </Typography>
+      </Box>
     </Paper>
   );
 };

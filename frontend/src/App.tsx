@@ -8,8 +8,7 @@ import {
   Container, 
   Grid, 
   Paper, 
-  Box,
-  useMediaQuery
+  Box
 } from '@mui/material';
 import RaffleInfo from './components/RaffleInfo';
 import ParticipantList from './components/ParticipantList';
