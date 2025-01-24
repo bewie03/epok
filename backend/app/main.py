@@ -24,21 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def add_cors_headers(response: Response):
-    response.headers["Access-Control-Allow-Origin"] = "https://epok-eight.vercel.app"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
-
 @app.get("/")
-async def root(response: Response):
-    response = add_cors_headers(response)
+async def root():
     return {"message": "Welcome to Epok Raffle API"}
 
 @app.get("/api/current-epoch")
-async def get_current_epoch(response: Response, db: Session = Depends(get_db)):
-    response = add_cors_headers(response)
+async def get_current_epoch(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     return {
         "epoch_start": current_epoch.start_time.isoformat(),
@@ -47,8 +38,7 @@ async def get_current_epoch(response: Response, db: Session = Depends(get_db)):
     }
 
 @app.get("/api/current-prize")
-async def get_current_prize(response: Response, db: Session = Depends(get_db)):
-    response = add_cors_headers(response)
+async def get_current_prize(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     return {
         "prize_type": "NFT",
@@ -57,8 +47,7 @@ async def get_current_prize(response: Response, db: Session = Depends(get_db)):
     }
 
 @app.get("/api/participants")
-async def get_participants(response: Response, db: Session = Depends(get_db)):
-    response = add_cors_headers(response)
+async def get_participants(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     
     entries = db.query(models.RaffleEntry)\
@@ -80,8 +69,7 @@ async def get_participants(response: Response, db: Session = Depends(get_db)):
     }
 
 @app.get("/api/entries")
-async def get_entries(response: Response, db: Session = Depends(get_db)):
-    response = add_cors_headers(response)
+async def get_entries(db: Session = Depends(get_db)):
     current_epoch = get_or_create_current_epoch(db)
     
     entries = db.query(models.RaffleEntry)\
@@ -101,8 +89,7 @@ async def get_entries(response: Response, db: Session = Depends(get_db)):
     }
 
 @app.get("/api/latest-winner")
-async def get_latest_winner(response: Response, db: Session = Depends(get_db)):
-    response = add_cors_headers(response)
+async def get_latest_winner(db: Session = Depends(get_db)):
     latest_completed_epoch = db.query(models.RaffleEpoch)\
         .filter(models.RaffleEpoch.is_completed == True)\
         .order_by(models.RaffleEpoch.end_time.desc())\
